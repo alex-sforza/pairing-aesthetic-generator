@@ -564,7 +564,8 @@ function buildGeneratedHtml(){
 .pae-answer-grid,.pae-portraits{grid-template-columns:1fr}.pae-image-grid{grid-template-columns:repeat(2,1fr)}.pae-portrait{height:430px}}
   `;
 
-  return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml($("resultName").textContent)}</title><style>${css}</style></head><body style="margin:0!important;padding:0!important;background:#151618!important;background-color:#151618!important"><div class="pae-root"><main class="pae-wrap">${result.outerHTML}</main></div></body></html>`;
+  return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml($("resultName").textContent)}</title><style>${css}</style></head><body style="margin:0!important;padding:0!important;background:#151618!important;background-color:#151618!important"><div class="pae-root"><main class="pae-wrap">${result.outerHTML}</main></div><script src="png-export.js"></script>
+</body></html>`;
 }
 function prepareCode(){
   const code=buildGeneratedHtml();
@@ -648,5 +649,6 @@ $('copyCode').onclick=async()=>{if(!$('generatedCode').value)prepareCode();try{a
 $('downloadCode').onclick=()=>{if(!$('generatedCode').value)prepareCode();const blob=new Blob([$('generatedCode').value],{type:'text/html;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='pairing-aesthetic.html';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
 
 </script>
+<script src="png-export.js"></script>
 </body>
 </html>
