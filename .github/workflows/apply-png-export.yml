@@ -1,29 +1,28 @@
-name: Add PNG export
+name: Publish Lily Dale Aesthetic Generator
 on:
   push:
     branches: [main]
 permissions:
   contents: write
 jobs:
-  apply:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Add PNG export script
+      - name: Publish generator
         run: |
           python - <<'PY'
+          import base64, gzip
           from pathlib import Path
-          p=Path('index.html')
-          s=p.read_text(encoding='utf-8')
-          tag='<script src="png-export.js"></script>'
-          if tag not in s:
-              s=s.replace('</body>', tag+'\n</body>')
-              p.write_text(s,encoding='utf-8')
+          data = gzip.decompress(base64.b64decode(Path('lily-generator.gz.b64').read_text().strip())).decode('utf-8')
+          Path('index.html').write_text(data, encoding='utf-8')
+          Path('png-export.js').unlink(missing_ok=True)
+          Path('lily-generator.gz.b64').unlink(missing_ok=True)
           PY
-      - name: Commit change
+      - name: Commit published generator
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html
-          git diff --cached --quiet || git commit -m "Add PNG export to aesthetic generator"
+          git add index.html png-export.js lily-generator.gz.b64
+          git diff --cached --quiet || git commit -m "Publish Lily Dale aesthetic generator with PNG export"
           git push
