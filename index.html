@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pairing Aesthetic Generator</title>
+<style>
+  :root{
+    --bg:#151618; --surface:#202226; --surface2:#2a2d31; --text:#f1f1ef;
+    --muted:#a9adb3; --accent:#f2f2ef; --accent2:#8d9299; --line:#44484e;
+    --shadow:0 24px 70px rgba(0,0,0,.32);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:
+      radial-gradient(circle at 8% 0%, rgba(155,139,62,.18), transparent 35%),
+      radial-gradient(circle at 92% 18%, rgba(89,117,68,.18), transparent 32%),
+      linear-gradient(145deg,#151d16,#0e130f 70%,#1b2419);
+    color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    line-height:1.5;
+  }
+  .wrap{max-width:1200px;margin:auto;padding:28px 18px 70px}
+  h1,h2,h3{font-family:Georgia,serif;font-weight:500}
+  h1{font-size:clamp(34px,5vw,66px);margin:0 0 8px;letter-spacing:-.03em;color:#f1f1ef}
+  h2{font-size:30px;margin:0 0 18px}
+  h3{margin:0 0 8px;font-size:20px}
+  .sub{color:var(--muted);max-width:780px;font-size:16px}
+  .hero{
+    padding:28px 28px 30px;
+    margin:8px 0 18px;
+    background:linear-gradient(145deg,#25272b,#1d1f22);
+    border:1px solid #44484e;
+    border-radius:24px;
+    box-shadow:0 24px 70px rgba(0,0,0,.28);
+  }
+  .result{width:1200px;min-width:1200px;transform-origin:top left}
+  .result{overflow:visible}
+
+  .card{
+    background:linear-gradient(145deg,#25272b,#1d1f22) !important;background-color:#1d1f22 !important;
+    border:1px solid var(--line);border-radius:24px;padding:22px;
+    box-shadow:var(--shadow);backdrop-filter:blur(12px);margin:18px 0;
+  }
+  .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:7px}
+  input[type=text],input[type=url],textarea,select{
+    width:100%;background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    color:var(--text);padding:12px 13px;outline:none;font:inherit;
+  }
+  textarea{min-height:90px;resize:vertical}
+  input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+  input[type=color]{width:56px;height:42px;padding:2px;border-radius:10px;background:var(--surface);border:1px solid var(--line)}
+  .palette{display:flex;gap:9px;align-items:center}
+  .palette input[type=text]{flex:1}
+  .swatch{width:38px;height:38px;border-radius:10px;border:1px solid rgba(255,255,255,.2);flex:none}
+  .field{margin-bottom:14px}
+  .choices{display:flex;flex-wrap:wrap;gap:9px}
+  .choice{position:relative}
+  .choice input{position:absolute;opacity:0;pointer-events:none}
+  .choice span{
+    display:inline-block;padding:9px 12px;border:1px solid var(--line);border-radius:999px;
+    background:var(--surface);cursor:pointer;color:#ddd4dc;font-size:14px;transition:.18s;
+  }
+  .choice input:checked+span{background:color-mix(in srgb,var(--accent) 22%,var(--surface));border-color:var(--accent);color:#fff}
+  .portrait-preview{height:360px;border-radius:18px;overflow:hidden;background:var(--surface2);border:1px solid var(--line);position:relative}
+  .portrait-preview img{width:100%;height:100%;object-fit:cover;display:block}
+  .portrait-with-palette{position:relative;overflow:hidden;background:#161b16!important}
+  .portrait-with-palette .portrait-palette{
+    position:absolute;inset:0;background-size:cover;background-position:center;filter:saturate(.7) contrast(1.05) brightness(.55);
+    opacity:.95;
+  }
+  .portrait-with-palette>img{position:relative;z-index:1;width:100%;height:100%;object-fit:cover;display:block;
+    border:1px solid rgba(255,255,255,.18);box-shadow:0 10px 35px rgba(0,0,0,.45)}
+  .pair-aesthetic-header{position:relative;min-height:260px;overflow:hidden;padding:0!important;background:#111713!important}
+  .pair-aesthetic-header::before{content:"";background-image:var(--pair-image,none);position:absolute;inset:0;background-size:cover;background-position:center;filter:brightness(.42) saturate(.9);transform:scale(1.03)}
+  .pair-aesthetic-overlay{position:relative;z-index:1;min-height:260px;padding:42px 30px;display:flex;flex-direction:column;justify-content:center;
+    background:linear-gradient(90deg,rgba(9,13,10,.82),rgba(9,13,10,.38),rgba(9,13,10,.68));}
+  .pair-aesthetic-name{font:500 clamp(30px,5vw,62px)/1.05 Georgia,serif;color:#f1f1ef;text-shadow:0 2px 20px rgba(0,0,0,.7)}
+  .pair-names{font:600 clamp(18px,2.5vw,28px)/1.25 Inter,system-ui,sans-serif;color:#e3e5e7;margin-top:10px;letter-spacing:.02em}
+  .pair-aesthetic-header .pair-name{margin:0;color:#f1f1f1;text-shadow:0 2px 22px rgba(0,0,0,.8)}
+
+  .portrait-preview .empty{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);padding:20px;text-align:center}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;position:sticky;bottom:14px;z-index:10}
+  button{
+    border:0;border-radius:13px;padding:13px 18px;font-weight:700;cursor:pointer;
+    background:var(--accent);color:#1b1519;box-shadow:0 8px 24px rgba(0,0,0,.22)
+  }
+  button.secondary{background:var(--surface2);color:var(--text);border:1px solid var(--line)}
+  button.danger{background:#4a2730;color:#ffdce4}
+  .error{color:#ffb8c8;margin:10px 0 0;display:none}
+  #result{display:none}
+  .pair-name{font:500 clamp(38px,7vw,82px)/1.02 Georgia,serif;letter-spacing:-.04em;margin:10px 0}
+  .pair-type{color:var(--muted);font-size:15px}
+  .portraits-result{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .result-portrait{height:430px;width:min(100%,430px);margin:0 auto;border-radius:22px;overflow:hidden;border:1px solid var(--line);background:#202226;padding:16px;position:relative}
+  .result-portrait img{width:100%;height:100%;object-fit:cover}
+  .character-name{text-align:center;font:500 25px Georgia,serif;margin:10px 0 0}
+  .palette-row{display:flex;gap:8px;margin-top:10px;justify-content:center}
+  .palette-chip{height:24px;width:24px;border-radius:50%;border:1px solid rgba(255,255,255,.25)}
+  .section-label{font-size:12px;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);margin-bottom:8px}
+  .quote{font:italic 28px/1.35 Georgia,serif;text-align:center;max-width:850px;margin:0 auto}
+  .big-color{
+    width:100%;height:100px;border-radius:18px;border:1px solid rgba(255,255,255,.18);
+    display:flex;align-items:center;justify-content:center;font-weight:800;letter-spacing:.08em;
+  }
+  .answer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .answer{padding:15px;border:1px solid var(--line);border-radius:15px;background:rgba(0,0,0,.12)}
+  .answer b{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.12em;margin-bottom:5px}
+  .energy-list{display:flex;flex-wrap:wrap;gap:8px}
+  .energy{padding:7px 10px;border-radius:999px;background:color-mix(in srgb,var(--accent) 16%,transparent);border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line))}
+  .image-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .mood-img{aspect-ratio:1/1;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:var(--surface)}
+  .mood-img img{width:100%;height:100%;object-fit:cover}
+  .mood-caption{text-align:center;color:var(--muted);font-size:12px;margin-top:6px}
+  .music{
+    display:flex;align-items:center;justify-content:space-between;gap:15px;
+    padding:15px 17px;border:1px solid var(--line);border-radius:16px;background:var(--surface)
+  }
+  .music a{color:var(--text);text-decoration:none}
+  .music a:hover{text-decoration:underline}
+  .prediction{
+    padding:28px;border-radius:22px;
+    background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 22%,var(--surface)),color-mix(in srgb,var(--accent2) 17%,var(--surface)));
+    border:1px solid color-mix(in srgb,var(--accent) 42%,var(--line))
+  }
+  .prediction p{font:20px/1.65 Georgia,serif;margin:0}
+  .mini{font-size:12px;color:var(--muted)}
+  .hidden{display:none}
+  @media(max-width:800px){
+    .hero{padding:22px 20px 24px;border-radius:20px}
+
+    .grid2,.answer-grid,.portraits-result{grid-template-columns:1fr}
+    .grid4{grid-template-columns:repeat(2,1fr)}
+    .image-grid{grid-template-columns:repeat(2,1fr)}
+    .result-portrait{height:430px}
+  }
+  @media(max-width:520px){
+    .wrap{padding:16px 12px 50px}
+    .card{padding:16px;border-radius:18px}
+    .grid4{grid-template-columns:1fr}
+    .image-grid{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="section-label">PAIRING AESTHETIC GENERATOR</div>
+    <h1>Эстетика пейринга</h1>
+    <p class="sub">Заполни ответы, добавь портреты и ссылки на изображения — генератор соберёт цельный визуальный язык пары, автоматически смешает палитры, придумает название и даст маленькое предсказание.</p>
+  </header>
+
+  <section class="card">
+    <h2>01 · Персонажи</h2>
+    <div class="grid2">
+      <div>
+        <div class="field"><label>Имя персонажа I</label><input id="name1" type="text" placeholder="Например: Марис"></div>
+        <div class="field"><label>Ссылка на портрет I</label><input id="portrait1" type="url" placeholder="https://..."></div>
+        <div class="field">
+          <label>Цветовая эстетика персонажа I — ссылка на изображение</label>
+          <input id="palette1" type="url" placeholder="https://.../palette-or-texture.jpg">
+          <div class="mini">Изображение станет подложкой под его/её портрет.</div>
+        </div>
+      </div>
+      <div>
+        <div class="field"><label>Имя персонажа II</label><input id="name2" type="text" placeholder="Например: Элиан"></div>
+        <div class="field"><label>Ссылка на портрет II</label><input id="portrait2" type="url" placeholder="https://..."></div>
+        <div class="field">
+          <label>Цветовая эстетика персонажа II — ссылка на изображение</label>
+          <input id="palette2" type="url" placeholder="https://.../palette-or-texture.jpg">
+          <div class="mini">Изображение станет подложкой под его/её портрет.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>02 · Что между ними?</h2>
+    <div class="grid2">
+      <div class="field"><label>Что связывает их сильнее всего?</label>
+        <select id="bond">
+<option>неизбежное притяжение</option>
+<option>доверие, которое приходится заслужить</option>
+<option>общая тайна</option>
+<option>взаимная зависимость</option>
+<option>старый долг</option>
+<option>вражда, за которой прячется нежность</option>
+<option>ощущение «ты — мой дом»</option>
+<option>союз двух одиночеств</option>
+<option>общая рана, которую никто больше не понимает</option>
+<option>обещание, данное много лет назад</option>
+<option>случайная встреча, которая изменила всё</option>
+<option>ощущение, будто они уже встречались раньше</option>
+<option>общая цель, ставшая личной</option>
+<option>секрет, который могут сохранить только они</option>
+<option>долгое одиночество, которое заканчивается рядом друг с другом</option>
+<option>взаимное спасение</option>
+<option>потребность быть увиденным настоящим</option>
+<option>непроговорённая любовь</option>
+<option>долг, который постепенно превращается в чувство</option>
+<option>одинаковое чувство чуждости этому миру</option>
+<option>общий враг</option>
+<option>необходимость постоянно выбирать друг друга</option>
+<option>связь, которой они сами не могут дать название</option>
+<option>невозможность окончательно отпустить друг друга</option>
+<option>ощущение, что вместе они становятся собой</option>
+<option>общая вера в невозможное</option>
+</select>
+      </div>
+      <div class="field"><label>Что они скрывают друг от друга?</label><input id="secret" type="text" placeholder="Например: страх быть оставленным"></div>
+      <div class="field"><label>Что один пробуждает в другом?</label><input id="awakens" type="text" placeholder="Например: желание жить ярче"></div>
+      <div class="field"><label>Что держит их рядом?</label>
+        <select id="anchor">
+<option>любопытство</option>
+<option>верность</option>
+<option>страсть</option>
+<option>ответственность</option>
+<option>привычка</option>
+<option>общее прошлое</option>
+<option>обещание</option>
+<option>страх потерять</option>
+<option>ощущение безопасности</option>
+<option>взаимное уважение</option>
+<option>общие секреты</option>
+<option>юмор, понятный только им</option>
+<option>притяжение, которому невозможно сопротивляться</option>
+<option>желание защищать друг друга</option>
+<option>необходимость быть рядом в трудные моменты</option>
+<option>любовь к одной и той же вещи</option>
+<option>общий дом или место</option>
+<option>совместные привычки и маленькие ритуалы</option>
+<option>страх одиночества</option>
+<option>ощущение незавершённости</option>
+<option>любопытство к внутреннему миру другого</option>
+<option>общая мечта</option>
+<option>взаимная уязвимость</option>
+<option>общее чувство юмора</option>
+<option>понимание без слов</option>
+<option>постоянное желание возвращаться друг к другу</option>
+<option>ощущение «мы против всего мира»</option>
+<option>желание стать для другого лучшей версией себя</option>
+</select>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>03 · Тропы и динамика</h2>
+    <div class="field"><label>Тип пейринга / тропы</label>
+      <div class="choices" id="tropes"></div>
+    </div>
+    <div class="field"><label>Динамика</label>
+      <div class="choices" id="dynamics"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Как выражается любовь?</label>
+        <select id="love"><option>поступками, а не словами</option><option>прикосновениями</option><option>заботой и бытовыми мелочами</option><option>ревностью и страхом потерять</option><option>юмором и поддразниванием</option><option>защитой</option><option>честными разговорами ночью</option><option>жертвами, о которых никто не просил</option></select>
+      </div>
+      <div class="field"><label>Визуальный язык пейринга</label>
+        <select id="visual"><option>старое кино и плёнка</option><option>готический роман</option><option>винтажный журнал</option><option>неон и мокрый асфальт</option><option>лесная мистика</option><option>осенний романтизм</option><option>пыльная библиотека</option><option>морская соль и холодный ветер</option><option>ночной город и свечи</option></select>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>04 · Атмосфера</h2>
+    <div class="grid2">
+      <div class="field"><label>Погода</label><select id="weather"><option>мелкий дождь</option><option>гроза</option><option>туман</option><option>первый снег</option><option>тёплый ветер</option><option>пасмурное небо</option><option>сухой холод</option><option>солнечный день перед бурей</option></select></div>
+      <div class="field"><label>Сезон</label><select id="season"><option>ранняя весна</option><option>поздняя весна</option><option>лето</option><option>ранняя осень</option><option>поздняя осень</option><option>зима</option></select></div>
+      <div class="field"><label>Время</label><select id="time"><option>рассвет</option><option>утро</option><option>золотой час</option><option>сумерки</option><option>полночь</option><option>предрассветный час</option></select></div>
+      <div class="field"><label>Дополнительная атмосфера</label><input id="atmosphere" type="text" placeholder="Например: запах мокрой древесины и старых книг"></div>
+    </div>
+    <div class="field">
+      <label>Энергия пары — выбери минимум 7 ощущений</label>
+      <div class="choices" id="energies"></div>
+      <div id="energyError" class="error">Выбери минимум 7 ощущений.</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>05 · Музыка</h2>
+    <div class="grid2">
+      <div class="field"><label>Название трека</label><input id="track" type="text" placeholder="Название композиции"></div>
+      <div class="field"><label>Ссылка на трек</label><input id="trackUrl" type="url" placeholder="https://open.spotify.com/... / https://youtu.be/..."></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>06 · Визуальные якоря</h2>
+    <div class="grid4">
+      <div class="field"><label>Место</label><input id="imgPlace" type="url" placeholder="Ссылка на изображение"></div>
+      <div class="field"><label>Предмет</label><input id="imgObject" type="url" placeholder="Ссылка на изображение"></div>
+      <div class="field"><label>Символ</label><input id="imgSymbol" type="url" placeholder="Ссылка на изображение"></div>
+      <div class="field"><label>Жест / момент</label><input id="imgMoment" type="url" placeholder="Сцена, прикосновение, взгляд"></div>
+      <div class="field"><label>Архитектура / пространство</label><input id="imgArchitecture" type="url" placeholder="Дом, комната, улица, интерьер"></div>
+      <div class="field"><label>Фактура / материал</label><input id="imgTexture" type="url" placeholder="Ткань, стекло, дерево, металл"></div>
+      <div class="field"><label>Природа / стихия</label><input id="imgNature" type="url" placeholder="Лес, вода, огонь, небо, цветы"></div>
+      <div class="field"><label>След / воспоминание</label><input id="imgMemory" type="url" placeholder="Фотография, письмо, след прошлого"></div>
+    </div>
+    <p class="mini">Восемь визуальных якорей: место, предмет, символ, жест/момент, архитектура/пространство, фактура/материал, природа/стихия и след/воспоминание. Все изображения используются как внешние ссылки.</p>
+  </section>
+
+  <section class="card">
+    <h2>07 · Финальный штрих</h2>
+    <div class="grid2">
+      <div class="field"><label>Фраза пары</label><textarea id="quote" placeholder="Фраза, которая звучит как их общая реплика"></textarea></div>
+      <div class="field">
+        <label>Цвет / визуальная эстетика пары — ссылка на изображение</label>
+        <input id="pairPalette" type="url" placeholder="https://.../pairing-aesthetic.jpg">
+        <div class="mini">Эта картинка станет подложкой для шапки итоговой эстетики.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="actions">
+    <button id="generate">✦ Сгенерировать эстетику</button>
+    <button class="secondary" id="randomize">Случайные ответы</button>
+    <button class="secondary" id="reset">Сбросить</button>
+  </div>
+  <div id="codeActions" class="actions hidden" style="margin-top:10px">
+    <button class="secondary" id="previewBtn">◉ Предпросмотр</button>
+    <button class="secondary" id="copyCode">Копировать код</button>
+  </div>
+<section id="generatedCodePanel" class="card hidden">
+    <div class="section-label">GENERATED HTML</div>
+    <h2>Код готовой эстетики</h2>
+    <p class="mini">Это отдельный HTML-документ результата: его можно сохранить, открыть в браузере и использовать как самостоятельную страницу эстетики.</p>
+    <textarea id="generatedCode" style="min-height:420px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px"></textarea>
+  </section>
+
+  <section id="result">
+    <div class="card pair-aesthetic-header" id="pairAestheticHeader">
+      <div class="pair-aesthetic-overlay">
+        <div class="section-label">PAIR AESTHETIC</div>
+        <div class="pair-name" id="resultName"></div>
+        <div class="pair-names" id="pairNames"></div>
+        <div class="pair-type" id="resultType"></div>
+      </div>
+    </div>
+
+    <div class="portraits-result">
+      <div>
+        <div class="result-portrait portrait-with-palette" id="portraitCard1"><div class="portrait-palette" id="rPaletteBg1"></div><img id="rPortrait1" alt=""></div>
+        <div class="character-name" id="rName1"></div>
+        <div class="palette-row" id="rPalette1"></div>
+      </div>
+      <div>
+        <div class="result-portrait portrait-with-palette" id="portraitCard2"><div class="portrait-palette" id="rPaletteBg2"></div><img id="rPortrait2" alt=""></div>
+        <div class="character-name" id="rName2"></div>
+        <div class="palette-row" id="rPalette2"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">RELATIONSHIP DYNAMIC</div>
+      <h2>То, что происходит между ними</h2>
+      <div class="answer-grid">
+        <div class="answer"><b>Связь</b><span id="rBond"></span></div>
+        <div class="answer"><b>Тропы</b><span id="rTropes"></span></div>
+        <div class="answer"><b>Динамика</b><span id="rDynamics"></span></div>
+        <div class="answer"><b>Любовь</b><span id="rLove"></span></div>
+        <div class="answer"><b>Скрытое</b><span id="rSecret"></span></div>
+        <div class="answer"><b>Пробуждает</b><span id="rAwakens"></span></div>
+        <div class="answer"><b>Якорь</b><span id="rAnchor"></span></div>
+        <div class="answer"><b>Визуальный язык</b><span id="rVisual"></span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">ATMOSPHERE</div>
+      <h2>Погода, время и энергия</h2>
+      <div class="answer-grid">
+        <div class="answer"><b>Погода</b><span id="rWeather"></span></div>
+        <div class="answer"><b>Сезон</b><span id="rSeason"></span></div>
+        <div class="answer"><b>Время</b><span id="rTime"></span></div>
+        <div class="answer"><b>Атмосфера</b><span id="rAtmosphere"></span></div>
+      </div>
+      <div style="margin-top:18px"><div class="section-label">ENERGY</div><div class="energy-list" id="rEnergies"></div></div>
+    </div>
+
+    
+
+    <div class="card">
+      <div class="section-label">VISUAL ARCHIVE</div>
+      <h2>Восемь визуальных образов</h2>
+      <div class="image-grid">
+        <div><div class="mood-img"><img id="rImgPlace" alt="Место"></div><div class="mood-caption">Место</div></div>
+        <div><div class="mood-img"><img id="rImgObject" alt="Предмет"></div><div class="mood-caption">Предмет</div></div>
+        <div><div class="mood-img"><img id="rImgSymbol" alt="Символ"></div><div class="mood-caption">Символ</div></div>
+        <div><div class="mood-img"><img id="rImgMoment" alt="Жест / момент"></div><div class="mood-caption">Жест / момент</div></div>
+        <div><div class="mood-img"><img id="rImgArchitecture" alt="Архитектура / пространство"></div><div class="mood-caption">Архитектура / пространство</div></div>
+        <div><div class="mood-img"><img id="rImgTexture" alt="Фактура / материал"></div><div class="mood-caption">Фактура / материал</div></div>
+        <div><div class="mood-img"><img id="rImgNature" alt="Природа / стихия"></div><div class="mood-caption">Природа / стихия</div></div>
+        <div><div class="mood-img"><img id="rImgMemory" alt="След / воспоминание"></div><div class="mood-caption">След / воспоминание</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">SOUNDTRACK</div>
+      <div class="music">
+        <div><h3 id="rTrack">—</h3><div class="mini">саундтрек пейринга</div></div>
+        <a id="rTrackLink" href="#" target="_blank" rel="noopener">Открыть трек ↗</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">THEIR LINE</div>
+      <div class="quote" id="rQuote">—</div>
+    </div>
+
+    <div class="card prediction">
+      <div class="section-label">ORACLE · ПРЕДСКАЗАНИЕ</div>
+      <h2>Что ждёт эту пару</h2>
+      <p id="prediction"></p>
+    </div>
+  </section>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const vals = {
+  tropes:["enemies to lovers","friends to lovers","slow burn","forbidden love","opposites attract","second chance","one bed","found family","rivals to lovers","grumpy × sunshine","soulmates","mutual pining"],
+  dynamics:["равные по силе","защитник × тот, кого защищают","хаос × контроль","холодный × тёплый","разум × импульс","искушение × сопротивление","учитель × ученик","две катастрофы","нежность × опасность","тот, кто остаётся × тот, кто убегает"],
+  energies:["напряжение","нежность","опасность","ирония","тоска","страсть","доверие","ревность","уют","тайна","меланхолия","надежда","одержимость","свобода","уязвимость","азарт","предчувствие","спокойствие"]
+};
+function makeChoices(id, list, name){
+  $(id).innerHTML=list.map((x,i)=>`<label class="choice"><input type="checkbox" name="${name}" value="${x}"><span>${x}</span></label>`).join("");
+}
+makeChoices("tropes",vals.tropes,"trope");
+makeChoices("dynamics",vals.dynamics,"dynamic");
+makeChoices("energies",vals.energies,"energy");
+
+const defaults={
+  name1:"Персонаж I",name2:"Персонаж II",
+  portrait1:"",portrait2:"",palette1:"",palette2:"",pairPalette:"",imgMoment:"",imgArchitecture:"",imgTexture:"",imgNature:"",imgMemory:"",quote:"Мы нашли друг друга там, где никто не искал.",
+  track:"",trackUrl:"",imgPlace:"",imgObject:"",imgSymbol:"",imgMoment:"",imgArchitecture:"",imgTexture:"",imgNature:"",imgMemory:"",
+  secret:"страх оказаться недостаточными друг для друга",
+  awakens:"смелость быть собой", atmosphere:"запах дождя, бумаги и чего-то почти знакомого"
+};
+
+function checked(name){return [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(x=>x.value)}
+function setChecked(name, arr){document.querySelectorAll(`input[name="${name}"]`).forEach(x=>x.checked=arr.includes(x.value))}
+function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function validUrl(u){try{return new URL(u).href}catch{return ""}}
+
+function rgb(hex){hex=hex.replace("#","");return [parseInt(hex.slice(0,2),16),parseInt(hex.slice(2,4),16),parseInt(hex.slice(4,6),16)]}
+function hex(v){return "#"+v.map(n=>Math.max(0,Math.min(255,Math.round(n))).toString(16).padStart(2,"0"))}
+function mixColors(colors){
+  const a=colors.map(rgb), r=a.reduce((s,c)=>s+c[0],0)/a.length, g=a.reduce((s,c)=>s+c[1],0)/a.length, b=a.reduce((s,c)=>s+c[2],0)/a.length;
+  return hex([r,g,b])
+}
+function luminance(h){let [r,g,b]=rgb(h).map(x=>x/255); return .2126*r+.7152*g+.0722*b}
+function textOn(h){return luminance(h)>.62?"#201b20":"#fff"}
+function setResultImage(id,url,label){
+  const img=$(id), u=validUrl(url);
+  img.src=u||`data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800"><rect width="100%" height="100%" fill="#2a2630"/><text x="50%" y="50%" fill="#aaa" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="28">${label}</text></svg>`)}`;
+}
+function pairTitle(name1,name2,tropes,dynamics,energies,visual){
+  const words=[...tropes,...dynamics,...energies].join(" ").toLowerCase();
+  const dark=/danger|forbidden|enemies|obsession|rival|опасн|запрет|одержим|вражд/i.test(words);
+  const soft=/tender|friends|soulmates|found|нежност|уют|довер/i.test(words);
+  const poetic = dark
+    ? ["Where the Light Ends","Ash & Spark","Until the Last Flame","The Dangerous Kind of Want"]
+    : soft
+      ? ["The Quiet Side of Light","A Home Between Two Hearts","While the Window Burns","Where We Remain"]
+      : ["Between Us, the Night","A Line of Attraction","Two Orbits","The Accident That Wasn't"];
+  return poetic[(name1.length+name2.length+tropes.length+dynamics.length+energies.length)%poetic.length];
+}
+function prediction(data){
+  const dark=data.tropes.some(x=>/forbidden|enemies|rivals|опас/i.test(x)) || data.energies.some(x=>/danger|obsession|опасность|одержимость/i.test(x));
+  const soft=data.energies.some(x=>/tenderness|trust|comfort|hope|нежность|доверие|уют|надежда/i.test(x));
+  const anchor=data.anchor;
+  const secret=data.secret||"невысказанное";
+  const awakens=data.awakens||"новую смелость";
+  const endings=[
+    `Эта связь не обещает лёгкого пути. Скорее всего, им придётся пройти через момент, когда привычные роли перестанут работать. Именно тогда станет ясно: ${anchor} был не случайностью, а выбором. Тайна — ${secret} — однажды выйдет наружу, и после этого отношения уже не смогут остаться прежними.`,
+    `В ближайшей главе их истории один из них сделает то, чего от него никто не ждёт. Это станет признанием сильнее любых слов. Второй поймёт, что рядом с этим человеком можно не только защищаться, но и позволить себе быть уязвимым. То, что один пробуждает в другом — ${awakens} — окажется их главным шансом.`,
+    `Предсказание этой пары — не про идеальную гармонию, а про баланс. Их связь будет проверяться расстоянием, выбором и страхом потерять контроль. Но если они научатся говорить раньше, чем станет слишком поздно, именно различия станут причиной, по которой они останутся вместе.`,
+    `Между ними есть ощущение незавершённого разговора. Судьба будет несколько раз ставить их по разные стороны одной двери — и каждый раз оставлять возможность открыть её. Самое важное произойдёт не в момент признания, а после него: когда любовь придётся подтвердить действием.`
+  ];
+  let p=endings[(data.energies.length+data.tropes.length+data.dynamics.length)%endings.length];
+  if(dark) p+=" Их притяжение опасно именно потому, что слишком многое поставлено на карту.";
+  else if(soft) p+=" У этой пары есть редкий шанс превратить нежность в настоящую опору.";
+  return p;
+}
+
+
+function buildGeneratedHtml(){
+  const result = $("result").cloneNode(true);
+  result.style.display = "block";
+  const paeHeader = result.querySelector("#pairAestheticHeader");
+  result.querySelectorAll(".actions,#generatedCodePanel,.generator-only").forEach(x=>x.remove());
+  result.querySelectorAll(".card").forEach(x=>x.classList.add("pae-card"));
+  result.querySelectorAll(".section-label").forEach(x=>x.classList.add("pae-section-label"));
+  result.querySelectorAll(".pair-name").forEach(x=>x.classList.add("pae-pair-name"));
+  result.querySelectorAll(".pair-type").forEach(x=>x.classList.add("pae-pair-type"));
+  result.querySelectorAll(".portraits-result").forEach(x=>x.classList.add("pae-portraits"));
+  result.querySelectorAll(".result-portrait").forEach(x=>x.classList.add("pae-portrait"));
+  result.querySelectorAll(".character-name").forEach(x=>x.classList.add("pae-character-name"));
+  result.querySelectorAll(".palette-row").forEach(x=>x.classList.add("pae-palette-row"));
+  result.querySelectorAll(".palette-chip").forEach(x=>x.classList.add("pae-palette-chip"));
+  result.querySelectorAll(".answer-grid").forEach(x=>x.classList.add("pae-answer-grid"));
+  result.querySelectorAll(".answer").forEach(x=>x.classList.add("pae-answer"));
+  result.querySelectorAll(".energy-list").forEach(x=>x.classList.add("pae-energy-list"));
+  result.querySelectorAll(".energy").forEach(x=>x.classList.add("pae-energy"));
+  result.querySelectorAll(".image-grid").forEach(x=>x.classList.add("pae-image-grid"));
+  result.querySelectorAll(".mood-img").forEach(x=>x.classList.add("pae-mood-img"));
+  result.querySelectorAll(".mood-caption").forEach(x=>x.classList.add("pae-caption"));
+  result.querySelectorAll(".music").forEach(x=>x.classList.add("pae-music"));
+  result.querySelectorAll(".quote").forEach(x=>x.classList.add("pae-quote"));
+  result.querySelectorAll(".big-color").forEach(x=>x.classList.add("pae-big-color"));
+  result.querySelectorAll(".prediction").forEach(x=>x.classList.add("pae-prediction"));
+  result.querySelectorAll(".mini").forEach(x=>x.classList.add("pae-mini"));
+  result.querySelectorAll(".portrait-palette").forEach(x=>x.classList.add("pae-portrait-palette"));
+  result.querySelectorAll(".pair-aesthetic-header").forEach(x=>x.classList.add("pae-pair-aesthetic-header"));
+  result.querySelectorAll(".pair-aesthetic-overlay").forEach(x=>x.classList.add("pae-pair-aesthetic-overlay"));
+  result.querySelectorAll(".pair-aesthetic-name").forEach(x=>x.classList.add("pae-pair-aesthetic-name"));
+  result.querySelectorAll(".pair-names").forEach(x=>x.classList.add("pae-pair-names"));
+
+  const pairPalette = validUrl($("pairPalette").value);
+  if (pairPalette) {
+    result.querySelector(".pair-aesthetic-header")?.style.setProperty("--pair-image", pairPalette ? `url("${pairPalette}")` : "none");
+  const generatedNames=result.querySelector("#pairNames");
+  if (generatedNames) generatedNames.textContent=`${$("name1").value.trim()||"Character I"} × ${$("name2").value.trim()||"Character II"}`;
+  }
+  if (validUrl($("palette1").value)) result.querySelector("#rPaletteBg1")?.style.setProperty("background-image", `url("${validUrl($("palette1").value)}")`);
+  if (validUrl($("palette2").value)) result.querySelector("#rPaletteBg2")?.style.setProperty("background-image", `url("${validUrl($("palette2").value)}")`);
+  [["rImgPlace","imgPlace"],["rImgObject","imgObject"],["rImgSymbol","imgSymbol"],["rImgMoment","imgMoment"],["rImgArchitecture","imgArchitecture"],["rImgTexture","imgTexture"],["rImgNature","imgNature"],["rImgMemory","imgMemory"]].forEach(([rid,fid])=>{const u=validUrl($(fid).value);if(u){const im=result.querySelector("#"+rid);if(im)im.src=u;}});
+  const css = `
+    html,body{margin:0!important;padding:0!important;width:100%;min-width:0;overflow-x:hidden;background:#151618!important;background-color:#151618!important}
+    .pae-fit{width:100%;overflow:hidden;background:#151618!important}
+    .pae-root{all:initial;display:block;box-sizing:border-box;position:relative;isolation:isolate;width:1200px;min-width:1200px;min-height:120px;padding:35px 18px 70px;background:#151618!important;background-color:#151618!important;color:#f1f1ef!important;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5;transform-origin:top left}
+    .pae-root *{box-sizing:border-box}
+    .pae-root h2,.pae-root h3{font-family:Georgia,serif;font-weight:500;color:#f1f1ef !important}
+    .pae-wrap{max-width:1200px;margin:0 auto;padding:0;background:#151618 !important;color:#f1f1ef !important}
+    .pae-card{background:#26282c !important;background-color:#26282c !important;border:1px solid #44484e;border-radius:24px;padding:22px;box-shadow:0 24px 70px rgba(0,0,0,.28);margin:18px 0;color:#f1f1ef !important}
+
+    .pae-section-label{font-size:17px;text-transform:uppercase;letter-spacing:.16em;color:#a9adb3 !important;margin-bottom:10px}
+    .pae-pair-name{font:500 82px/1.02 Georgia,serif;letter-spacing:-.04em;margin:10px 0;color:#f1f1ef !important}
+    .pae-pair-type{color:#a9adb3 !important;font-size:15px}
+    .pae-portraits{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .pae-portrait{height:520px;border-radius:22px;overflow:hidden;border:1px solid #44484e;background:#202226 !important}
+    .pae-portrait{position:relative;overflow:hidden;height:430px;width:min(100%,430px);margin:0 auto;padding:16px;background:#202226!important}.pae-portrait-palette{position:absolute;inset:0;background-size:cover;background-position:center;filter:saturate(.7) contrast(1.05) brightness(.55);opacity:.95}.pae-portrait img{position:relative;z-index:1;width:100%;height:100%;object-fit:cover;border:1px solid rgba(255,255,255,.18);box-shadow:0 10px 35px rgba(0,0,0,.45)}
+    .pae-character-name{text-align:center;font:500 25px Georgia,serif;margin:10px 0;color:#f1f1ef !important}
+    .pae-palette-row{display:flex;gap:8px;margin-top:10px;justify-content:center}
+    .pae-palette-chip{height:24px;width:24px;border-radius:50%;border:1px solid rgba(255,255,255,.25)}
+    .pae-answer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .pae-answer{padding:15px;border:1px solid #44484e;border-radius:15px;background:#202226 !important;color:#f1f1ef !important}
+    .pae-answer b{display:block;color:#a9adb3 !important;font-size:16px;text-transform:uppercase;letter-spacing:.12em;margin-bottom:7px}
+    .pae-answer{font-size:20px;line-height:1.5}
+    .pae-energy-list{display:flex;flex-wrap:wrap;gap:8px}
+    .pae-energy{padding:8px 12px;font-size:16px;border-radius:999px;background:#303338 !important;border:1px solid #6d7279;color:#f1f1ef !important}
+    .pae-image-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .pae-mood-img{aspect-ratio:1/1;border-radius:16px;overflow:hidden;border:1px solid #44484e;background:#202226 !important}
+    .pae-mood-img img{width:100%;height:100%;object-fit:cover}
+    .pae-caption{text-align:center;color:#a9adb3 !important;font-size:16px;margin-top:8px}
+    .pae-music{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:15px 17px;border:1px solid #44484e;border-radius:16px;background:#202226 !important}
+    .pae-music a{color:#f1f1ef !important}
+    .pae-quote{font:italic 28px/1.35 Georgia,serif;text-align:center;max-width:850px;margin:auto;color:#f1f1ef !important}
+    .pae-big-color{width:100%;height:100px;border-radius:18px;border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-weight:800;letter-spacing:.08em}
+    .pae-pair-aesthetic-header{position:relative;min-height:260px;overflow:hidden;padding:0!important;background:#111713!important;background-image:var(--pair-image,none)!important;background-size:cover;background-position:center}.pae-pair-aesthetic-overlay{min-height:260px;padding:42px 30px;display:flex;flex-direction:column;justify-content:center;background:linear-gradient(90deg,rgba(9,13,10,.82),rgba(9,13,10,.38),rgba(9,13,10,.68))}.pae-pair-aesthetic-name{font:500 62px/1.05 Georgia,serif;color:#f1f1ef!important;text-shadow:0 2px 20px rgba(0,0,0,.7)}
+    .pae-prediction{padding:28px;border-radius:22px;background:#292b2f !important;border:1px solid #7b8d58;color:#f1f1ef !important}
+    .pae-prediction p{font:20px/1.65 Georgia,serif;margin:0;color:#f1f1ef !important}
+    .pae-mini{font-size:12px;color:#a9adb3 !important}
+    .pae-root .pae-card{width:100%;min-width:0}
+    .pae-root .pae-portraits{width:100%;grid-template-columns:1fr 1fr}
+    .pae-root .pae-answer-grid{width:100%;grid-template-columns:1fr 1fr}
+    .pae-root .pae-image-grid{width:100%;grid-template-columns:repeat(4,1fr)}
+    .pae-root .pae-portrait{width:430px;min-width:430px;height:430px}
+
+    /* LARGE TYPE — Relationship Dynamic / Atmosphere / Visual Archive */
+    .pae-root .card .section-label{font-size:20px!important;line-height:1.2!important;letter-spacing:.16em!important;margin-bottom:14px!important}
+    .pae-root .card h2{font-size:44px!important;line-height:1.15!important;margin:0 0 24px!important}
+    .pae-root .answer{padding:19px 20px!important}
+    .pae-root .answer b{font-size:19px!important;line-height:1.2!important;letter-spacing:.12em!important;margin-bottom:9px!important}
+    .pae-root .answer span{font-size:23px!important;line-height:1.4!important}
+    .pae-root .energy-list{gap:10px!important}
+    .pae-root .energy{font-size:19px!important;padding:9px 14px!important;line-height:1.25!important}
+    .pae-root .mood-caption{font-size:19px!important;line-height:1.25!important;margin-top:9px!important}
+
+    /* LARGE TYPE — Soundtrack */
+    .pae-root .music h3{font-size:30px!important;line-height:1.25!important;margin:0 0 7px!important}
+    .pae-root .music .mini{font-size:16px!important;line-height:1.35!important}
+    .pae-root .music a{font-size:19px!important;line-height:1.3!important}
+    .pae-root .music{padding:20px 22px!important}
+
+
+    /* Fixed composition: the entire aesthetic scales as one unit; blocks never reflow. */
+  `;
+
+  return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml($("resultName").textContent)}</title><style>${css}</style></head><body><div class="pae-fit"><div class="pae-root"><main class="pae-wrap">${result.outerHTML}</main></div></div><script>
+(function(){
+  const root=document.querySelector(".pae-root"), fit=document.querySelector(".pae-fit");
+  function fitAesthetic(){
+    if(!root||!fit)return;
+    const base=1200;
+    const scale=Math.min(1,Math.max(0.1,window.innerWidth/base));
+    root.style.transform="scale("+scale+")";
+    fit.style.height=(root.scrollHeight*scale)+"px";
+  }
+  window.addEventListener("resize",fitAesthetic);
+  window.addEventListener("load",fitAesthetic);
+  fitAesthetic();
+})();
+<\/script></body></html>`;
+}
+function prepareCode(){
+  const code=buildGeneratedHtml();
+  $("generatedCode").value=code;
+  $("codeActions").classList.remove("hidden");
+}
+
+function generate(){
+  const energies=checked("energy"), tropes=checked("trope"), dynamics=checked("dynamic");
+  $("energyError").style.display=energies.length<7?"block":"none";
+  if(energies.length<7){window.scrollTo({top:$("energies").closest(".card").offsetTop-20,behavior:"smooth"});return false}
+  const n1=$("name1").value.trim()||"Персонаж I", n2=$("name2").value.trim()||"Персонаж II";
+  const palette1=validUrl($("palette1").value), palette2=validUrl($("palette2").value), pairPalette=validUrl($("pairPalette").value);
+  
+  document.documentElement.style.setProperty("--accent","#f1f1f1");
+  document.documentElement.style.setProperty("--accent2","#8d9299");
+
+  $("resultName").textContent=pairTitle(n1,n2,tropes,dynamics,energies,$("visual").value);
+  $("pairNames").textContent=`${n1} × ${n2}`;
+  $("resultType").textContent=[...tropes.slice(0,3),...dynamics.slice(0,2)].join(" · ")||"pairing dynamic";
+  $("rName1").textContent=n1; $("rName2").textContent=n2;
+  setResultImage("rPortrait1",$("portrait1").value,n1); setResultImage("rPortrait2",$("portrait2").value,n2);
+  $("rPalette1").innerHTML=palette1 ? `<span class="mini">визуальная палитра персонажа I</span>` : "";
+  $("rPalette2").innerHTML=palette2 ? `<span class="mini">визуальная палитра персонажа II</span>` : "";
+  $("rPaletteBg1").style.backgroundImage=palette1 ? `url("${palette1}")` : "";
+  $("rPaletteBg2").style.backgroundImage=palette2 ? `url("${palette2}")` : "";
+  $("portraitCard1").style.backgroundImage=palette1 ? `url("${palette1}")` : "";
+  $("portraitCard2").style.backgroundImage=palette2 ? `url("${palette2}")` : "";
+  $("rBond").textContent=$("bond").value; $("rSecret").textContent=$("secret").value||"—";
+  $("rAwakens").textContent=$("awakens").value||"—"; $("rAnchor").textContent=$("anchor").value;
+  $("rTropes").textContent=tropes.join(", ")||"—"; $("rDynamics").textContent=dynamics.join(", ")||"—";
+  $("rLove").textContent=$("love").value; $("rVisual").textContent=$("visual").value;
+  $("rWeather").textContent=$("weather").value; $("rSeason").textContent=$("season").value; $("rTime").textContent=$("time").value;
+  $("rAtmosphere").textContent=$("atmosphere").value||"—";
+  $("rEnergies").innerHTML=energies.map(x=>`<span class="energy">${escapeHtml(x)}</span>`).join("");
+  $("pairAestheticHeader").style.setProperty("--pair-image", pairPalette ? `url("${pairPalette}")` : "none");
+  $("pairAestheticHeader").style.backgroundImage=pairPalette ? `url("${pairPalette}")` : "";
+  $("pairAestheticHeader").querySelector(".pair-name").textContent=$("resultName").textContent;
+  $("pairAestheticHeader").querySelector(".pair-names").textContent=`${n1} × ${n2}`;
+  setResultImage("rImgPlace",$("imgPlace").value,"Место"); setResultImage("rImgObject",$("imgObject").value,"Предмет");
+  setResultImage("rImgSymbol",$("imgSymbol").value,"Символ"); setResultImage("rImgMoment",$("imgMoment").value,"Жест / момент");
+  setResultImage("rImgArchitecture",$("imgArchitecture").value,"Архитектура");
+  setResultImage("rImgTexture",$("imgTexture").value,"Фактура");
+  setResultImage("rImgNature",$("imgNature").value,"Природа");
+  setResultImage("rImgMemory",$("imgMemory").value,"Воспоминание");
+  $("rTrack").textContent=$("track").value||"Без названия";
+  const tu=validUrl($("trackUrl").value); $("rTrackLink").href=tu||"#"; $("rTrackLink").style.pointerEvents=tu?"auto":"none"; $("rTrackLink").style.opacity=tu?1:.45;
+  $("rQuote").textContent=$("quote").value||"—";
+  $("prediction").textContent=prediction({tropes,dynamics,energies,anchor:$("anchor").value,secret:$("secret").value,awakens:$("awakens").value});
+  $("result").style.display="none";
+  return true;
+}
+
+function randomize(){
+  const rand=a=>a[Math.floor(Math.random()*a.length)];
+  const choose=(name,min,max)=>{const boxes=[...document.querySelectorAll(`input[name="${name}"]`)];boxes.forEach(x=>x.checked=false);const n=min+Math.floor(Math.random()*(max-min+1));boxes.sort(()=>Math.random()-.5).slice(0,n).forEach(x=>x.checked=true)};
+  const selectRandom=id=>{const el=$(id);if(el)el.selectedIndex=Math.floor(Math.random()*el.options.length)};
+  choose('trope',2,5); choose('dynamic',1,3); choose('energy',7,13);
+  ['bond','anchor','love','visual','weather','season','time'].forEach(selectRandom);
+  const secrets=['что они уже давно знают о чувствах друг друга','страх оказаться тем, кто любит сильнее','прошлое, о котором невозможно говорить вслух','желание остаться, несмотря на все причины уйти','обещание, которое никто не должен был услышать','ревность, которую оба называют чем угодно, кроме ревности','настоящую причину их первой встречи','то, насколько сильно они боятся потерять друг друга','что один из них уже однажды выбрал другого','нежелание показывать собственную уязвимость','чувство вины за то, что произошло между ними','мечту о совместном будущем, которую страшно произнести'];
+  const awakens=['желание быть смелее','способность снова доверять','голод по жизни','неожиданную нежность','готовность остаться','желание защищать, не контролируя','способность говорить правду','веру в то, что их история ещё не закончена','желание быть увиденным настоящим','ощущение дома','смелость нарушить собственные правила','надежду на второй шанс'];
+  const atmospheres=['запах мокрой древесины, старой бумаги и холодного воздуха','свечи, пыльные окна и далёкий шум города','кофе, дождь по стеклу и тёплый свет настольной лампы','дым костра, влажная трава и ночное небо','морская соль, ветер и холодный камень','старый винил, бархатные шторы и приглушённый свет','озон после грозы, мокрый асфальт и неон','сухие листья, шерстяной плед и открытое окно','библиотечная пыль, чернила и тишина после полуночи','снег за окном, тёплая кухня и один оставленный свет','цветы, духи и солнечные пятна на старом паркете','лесная тишина, туман и далёкий звон колокольчика'];
+  const quotes=['I would choose you in every lifetime.','Stay. We will survive the rest somehow.','You are my most dangerous habit.','I know every reason to leave. I am still here.','There is too much between us to call this an accident.','If you run, I will find you.','You make staying feel less frightening.','I was looking for a way out. Then I found you.','Tell me the truth, even if it changes everything.','Maybe home was never a place.','I knew it was you before I knew why.','Whatever happens next, don’t face it alone.','We were never supposed to be easy.','I would rather lose my way with you than find it alone.','You are the one thing I cannot pretend not to want.'];
+  const namePairs=[['Character I','Character II'],['The Stranger','The One Who Stayed'],['The Wanderer','The Keeper'],['The Fire','The Silence'],['The Moon','The Tide'],['The Dreamer','The Witness']];
+  const names=rand(namePairs); $('name1').value=names[0]; $('name2').value=names[1]; $('secret').value=rand(secrets); $('awakens').value=rand(awakens); $('atmosphere').value=rand(atmospheres); $('quote').value=rand(quotes);
+  ['portrait1','portrait2','palette1','palette2','pairPalette','track','trackUrl','imgPlace','imgObject','imgSymbol','imgMoment','imgArchitecture','imgTexture','imgNature','imgMemory'].forEach(id=>{if($(id))$(id).value=''});
+  const ok=generate(); if(ok!==false){prepareCode();$('generatedCodePanel').classList.remove('hidden');$('codeActions').classList.remove('hidden');$('generatedCodePanel').scrollIntoView({behavior:'smooth',block:'start'})}
+}
+function resetAll(){
+  document.querySelectorAll('input,textarea').forEach(el=>{if(el.type==='checkbox')el.checked=false;else el.value=''});
+  $('name1').value=defaults.name1; $('name2').value=defaults.name2; $('secret').value=defaults.secret; $('awakens').value=defaults.awakens; $('atmosphere').value=defaults.atmosphere; $('quote').value=defaults.quote;
+  document.querySelectorAll('select').forEach(el=>el.selectedIndex=0);
+  $('energyError').style.display='none'; $('result').style.display='none'; $('codeActions').classList.add('hidden'); $('generatedCodePanel').classList.add('hidden'); $('generatedCode').value='';
+  $('result').style.height='';
+  $('result').style.transform='';
+  $('result').style.marginBottom='';
+  ['rPaletteBg1','rPaletteBg2','portraitCard1','portraitCard2','pairAestheticHeader'].forEach(id=>{if($(id)){$(id).style.backgroundImage='';$(id).style.removeProperty('--pair-image')}});
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+$('generate').onclick=()=>{
+  const ok=generate();
+  if(ok!==false){
+    prepareCode();
+    $('generatedCodePanel').classList.remove('hidden');
+    $('codeActions').classList.remove('hidden');
+    $('generatedCodePanel').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+};
+$('randomize').onclick=randomize;
+$('reset').onclick=resetAll;
+
+$('previewBtn').onclick=()=>{
+  $('result').style.display='block';
+  const result=$('result');
+  result.classList.add('png-export-fixed');
+
+  const fitPreview=()=>{
+    const scale=Math.min(1,Math.max(0.1,window.innerWidth/1200));
+    result.style.transform=`scale(${scale})`;
+    result.style.transformOrigin='top left';
+
+    // Transform does not change normal document flow. Give the preview
+    // exactly its visual height, so no artificial empty space appears.
+    const visualHeight=result.scrollHeight*scale;
+    result.style.height=visualHeight+'px';
+    result.style.marginBottom='0';
+  };
+
+  if(window.__pairPreviewFit)window.removeEventListener('resize',window.__pairPreviewFit);
+  window.__pairPreviewFit=fitPreview;
+  window.addEventListener('resize',fitPreview);
+  fitPreview();
+
+  // Scroll to the actual top of the preview immediately, not during a
+  // smooth animation that can leave a large blank area on screen.
+  const top=result.getBoundingClientRect().top+window.scrollY-18;
+  window.scrollTo({top:Math.max(0,top),behavior:'instant'});
+};
+
+$('copyCode').onclick=async()=>{
+  if(!$('generatedCode').value)prepareCode();
+  try{await navigator.clipboard.writeText($('generatedCode').value)}
+  catch(e){$('generatedCode').select();document.execCommand('copy')}
+  $('copyCode').textContent='✓ Код скопирован';
+  setTimeout(()=>$('copyCode').textContent='Копировать код',1500);
+};
+</script>
+</body>
+</html>
